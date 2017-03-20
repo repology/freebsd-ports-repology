@@ -1,0 +1,3 @@
+lib/postgresql/libversion.so
+share/postgresql/extension/libversion--1.0.0.sql
+share/postgresql/extension/libversion.control
