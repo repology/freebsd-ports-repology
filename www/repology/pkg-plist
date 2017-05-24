@@ -1,4 +1,2 @@
 @sample etc/repology/repology.conf.sample
-@sample etc/repology/repos.yaml.sample
-@sample etc/repology/rules.yaml.sample
 @dir(%%USER%%,%%GROUP%%) /var/db/repology

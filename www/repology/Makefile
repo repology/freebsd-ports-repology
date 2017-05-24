@@ -2,7 +2,7 @@
 # $FreeBSD$
 
 PORTNAME=	repology
-PORTVERSION=	git20170317
+PORTVERSION=	git20170523
 CATEGORIES=	www
 
 MAINTAINER=	amdmi3@FreeBSD.org
@@ -17,26 +17,31 @@ RUN_DEPENDS=	${PYTHON_PKGNAMEPREFIX}yaml>=0:devel/py-yaml \
 		${PYTHON_PKGNAMEPREFIX}Flask>=0:www/py-flask \
 		${PYTHON_PKGNAMEPREFIX}rubymarshal>=0:devel/py-rubymarshal \
 		${PYTHON_PKGNAMEPREFIX}requests>=0:www/py-requests \
-		${PYTHON_PKGNAMEPREFIX}psycopg2>=0:databases/py-psycopg2
+		${PYTHON_PKGNAMEPREFIX}psycopg2>=0:databases/py-psycopg2 \
+		${PYTHON_PKGNAMEPREFIX}lxml>=0:devel/py-lxml
 RUN_DEPENDS+=	wget:ftp/wget \
 		git:devel/git \
-		rsync:net/rsync
+		rsync:net/rsync \
+		${LOCALBASE}/lib/tcllib/json/json_write.tcl:devel/tcllib
 LIB_DEPENDS=	librpm.so:archivers/rpm4
 BUILD_DEPENDS=	${LOCALBASE}/lib/libversion.a:devel/libversion
 
 USE_GITHUB=	yes
-GH_TAGNAME=	6f6a42c
+GH_TAGNAME=	9bc9878
 
-USES=		pgsql:9.6+ pkgconfig python:3.6+
+USES=		pgsql:9.6+ pkgconfig python:3.6+ tcl
 USE_PYTHON=	distutils autoplist
 
-USERS=		repology
-GROUPS=		repology
+# More correct, but needs UIDs/GIDs entry
+#USERS=		repology
+#GROUPS=		repology
 
 USERS=		www
 GROUPS=		www
 
 PLIST_SUB=	USER="${USERS}" GROUP="${GROUPS}"
+
+PORTDATA=	*
 
 .include <bsd.port.pre.mk>
 
@@ -50,14 +55,20 @@ IGNORE=		requires DEFAULT_VERSIONS+=pgsql=9.6 or later
 
 post-patch:
 	@${REINPLACE_CMD} -e 's|repology.conf|${ETCDIR}/&|' ${WRKSRC}/repology-app.py
-	@${REINPLACE_CMD} -e "s|os.path.dirname(__file__).*repology.conf|'${ETCDIR}/repology.conf|" ${WRKSRC}/repology/config.py
-	@${REINPLACE_CMD} -e 's|_state|/var/db/repology|; s|repos.yaml|${ETCDIR}/&|; \
-		s|rules.yaml|${ETCDIR}/&|' ${WRKSRC}/repology.conf.default
+	@${REINPLACE_CMD} -e "s|os.path.dirname(__file__).*repology.conf|'${ETCDIR}/repology.conf|" \
+		${WRKSRC}/repology/config.py
+	@${REINPLACE_CMD} \
+		-e 's|"_state"|"/var/db/repology"|' \
+		-e 's|"repos.d"|"${DATADIR}/repos.d"|' \
+		-e 's|"rules.d"|"${DATADIR}/rules.d"|' \
+		-e 's|"helpers"|"${DATADIR}/helpers"|' \
+		-e 's|"tclsh"|"${TCLSH}"|' \
+		${WRKSRC}/repology.conf.default
 
 post-install:
+	@cd ${WRKSRC} && ${COPYTREE_SHARE} "repos.d rules.d helpers" ${STAGEDIR}${DATADIR}
+
 	@${MKDIR} ${STAGEDIR}${ETCDIR}
-	${INSTALL_DATA} ${WRKSRC}/repos.yaml ${STAGEDIR}${ETCDIR}/repos.yaml.sample
-	${INSTALL_DATA} ${WRKSRC}/rules.yaml ${STAGEDIR}${ETCDIR}/rules.yaml.sample
 	${INSTALL_DATA} ${WRKSRC}/repology.conf.default ${STAGEDIR}${ETCDIR}/repology.conf.sample
 
 	@${MKDIR} ${STAGEDIR}/var/db/repology
