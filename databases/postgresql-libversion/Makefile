@@ -2,8 +2,7 @@
 # $FreeBSD$
 
 PORTNAME=	postgresql-libversion
-PORTVERSION=	1.0.0
-PORTREVISION=	1
+PORTVERSION=	1.1.0
 CATEGORIES=	databases
 
 MAINTAINER=	amdmi3@FreeBSD.org
