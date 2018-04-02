@@ -2,7 +2,7 @@
 # $FreeBSD$
 
 PORTNAME=	postgresql-libversion
-PORTVERSION=	1.1.0
+PORTVERSION=	1.1.1
 CATEGORIES=	databases
 
 MAINTAINER=	amdmi3@FreeBSD.org
@@ -11,7 +11,7 @@ COMMENT=	PostgreSQL extension with support for version string comparison
 LICENSE=	MIT
 LICENSE_FILE=	${WRKSRC}/COPYING
 
-BUILD_DEPENDS=	${LOCALBASE}/lib/libversion.a:devel/libversion
+LIB_DEPENDS=	libversion.so:devel/libversion
 
 USE_GITHUB=	yes
 GH_ACCOUNT=	repology
