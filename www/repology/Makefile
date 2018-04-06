@@ -2,7 +2,7 @@
 # $FreeBSD$
 
 PORTNAME=	repology
-PORTVERSION=	git20170523
+PORTVERSION=	git20180406
 CATEGORIES=	www
 
 MAINTAINER=	amdmi3@FreeBSD.org
@@ -13,12 +13,15 @@ LICENSE_FILE=	${WRKSRC}/COPYING
 
 # Since some required python modules (Flask) are missing py3 counterparts,
 # we use py- ports and require python default version 3.6+
-RUN_DEPENDS=	${PYTHON_PKGNAMEPREFIX}yaml>=0:devel/py-yaml \
-		${PYTHON_PKGNAMEPREFIX}Flask>=0:www/py-flask \
-		${PYTHON_PKGNAMEPREFIX}rubymarshal>=0:devel/py-rubymarshal \
-		${PYTHON_PKGNAMEPREFIX}requests>=0:www/py-requests \
-		${PYTHON_PKGNAMEPREFIX}psycopg2>=0:databases/py-psycopg2 \
-		${PYTHON_PKGNAMEPREFIX}lxml>=0:devel/py-lxml
+RUN_DEPENDS=	${PYTHON_PKGNAMEPREFIX}yaml>=0:devel/py-yaml@${FLAVOR} \
+		${PYTHON_PKGNAMEPREFIX}Flask>=0:www/py-flask@${FLAVOR} \
+		${PYTHON_PKGNAMEPREFIX}rubymarshal>=0:devel/py-rubymarshal@${FLAVOR} \
+		${PYTHON_PKGNAMEPREFIX}requests>=0:www/py-requests@${FLAVOR} \
+		${PYTHON_PKGNAMEPREFIX}psycopg2>=0:databases/py-psycopg2@${FLAVOR} \
+		${PYTHON_PKGNAMEPREFIX}lxml>=0:devel/py-lxml@${FLAVOR} \
+		${PYTHON_PKGNAMEPREFIX}libversion>=0:devel/py-libversion@${FLAVOR} \
+		${PYTHON_PKGNAMEPREFIX}pytz>=0:devel/py-pytz@${FLAVOR} \
+		${PYTHON_PKGNAMEPREFIX}pillow>=0:graphics/py-pillow@${FLAVOR}
 RUN_DEPENDS+=	wget:ftp/wget \
 		git:devel/git \
 		rsync:net/rsync \
@@ -27,9 +30,11 @@ LIB_DEPENDS=	librpm.so:archivers/rpm4
 BUILD_DEPENDS=	${LOCALBASE}/lib/libversion.a:devel/libversion
 
 USE_GITHUB=	yes
-GH_TAGNAME=	9bc9878
+GH_TAGNAME=	81aa7bd
+GH_TUPLE=	repology:repology-rules:595a44e:rules/rules.d
 
-USES=		pgsql:9.6+ pkgconfig python:3.6+ tcl
+USES=		pgsql:9.6+ pkgconfig python:3.6+ shebangfix tcl
+SHEBANG_FILES=	*.py test/*.py
 USE_PYTHON=	distutils autoplist
 
 # More correct, but needs UIDs/GIDs entry
@@ -64,8 +69,11 @@ post-patch:
 		-e 's|"helpers"|"${DATADIR}/helpers"|' \
 		-e 's|"tclsh"|"${TCLSH}"|' \
 		${WRKSRC}/repology.conf.default
+	@${REINPLACE_CMD} -e 's|python3|${python_CMD}|' ${WRKSRC}/Makefile
 
 post-install:
+	cd ${WRKSRC} && ${MAKE} test check
+
 	@cd ${WRKSRC} && ${COPYTREE_SHARE} "repos.d rules.d helpers" ${STAGEDIR}${DATADIR}
 
 	@${MKDIR} ${STAGEDIR}${ETCDIR}
